@@ -1,0 +1,31 @@
+{
+  "name": "HappyText 텍스트 뷰어",
+  "short_name": "HappyText",
+  "description": "안드로이드 모바일 최적화 야간 저자극 스마트 텍스트 뷰어",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#151618",
+  "theme_color": "#151618",
+  "categories": ["books", "entertainment", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
