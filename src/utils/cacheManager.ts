@@ -1,7 +1,7 @@
 // 앱 버전 및 캐시 강제 갱신 유틸리티
 
-export const APP_VERSION = 'v2.1.0';
-export const APP_BUILD_DESC = '권 이동 시 본문 100% 즉각 갱신 수정';
+export const APP_VERSION = 'v2.2.0';
+export const APP_BUILD_DESC = '하단 70% 전체 다음장 터치 & 우측 스와이프 이전장';
 
 export async function forceUpdateApp(): Promise<void> {
   try {
