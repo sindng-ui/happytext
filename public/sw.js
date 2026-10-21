@@ -1,6 +1,6 @@
-// HappyText 오프라인 캐싱 서비스 워커 (v10)
+// HappyText 오프라인 캐싱 서비스 워커 (v16)
 
-const CACHE_NAME = 'happytext-cache-v10';
+const CACHE_NAME = 'happytext-cache-v16';
 
 self.addEventListener('install', (event) => {
   // 새 서비스 워커가 설치되면 즉시 활성화 (대기 없이 바로 적용)

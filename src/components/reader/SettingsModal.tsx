@@ -1,6 +1,6 @@
 import React from 'react';
 import { ReaderSettings, ReadingTheme, ReadingMode, FontFamily } from '../../types/book';
-import { X, Moon, Sun, BookText, AlignJustify, ScrollText, BookOpen, RefreshCw } from 'lucide-react';
+import { X, Moon, Sun, BookText, ScrollText, BookOpen, RefreshCw, Volume2 } from 'lucide-react';
 import { APP_VERSION, APP_BUILD_DESC, forceUpdateApp } from '../../utils/cacheManager';
 
 interface SettingsModalProps {
@@ -24,6 +24,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     { id: 'sepia', label: '편안한 세피아', bg: '#211d19', color: '#ded4c6', border: '#383129' },
     { id: 'linen', label: '소프트 린넨', bg: '#f2efe9', color: '#2d2a26', border: '#cfc9bd' }
   ];
+
+  const currentRate = settings.ttsRate || 1.0;
 
   return (
     <div
@@ -52,7 +54,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           boxShadow: '0 -8px 30px rgba(0,0,0,0.5)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '20px'
+          gap: '18px'
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -208,7 +210,41 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
         </div>
 
-        {/* 4. 보기 모드 (스크롤 vs 페이징) */}
+        {/* 4. 음성 낭독 속도 */}
+        <div>
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '13px',
+              color: 'var(--text-secondary)',
+              marginBottom: '6px'
+            }}
+          >
+            <Volume2 size={14} /> 음성 낭독 속도 ({currentRate}x)
+          </label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+            {[0.8, 1.0, 1.2, 1.5].map((r) => (
+              <button
+                key={r}
+                onClick={() => onUpdateSettings({ ttsRate: r })}
+                style={{
+                  padding: '8px 0',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: currentRate === r ? 'var(--accent)' : 'var(--bg-surface-elevated)',
+                  color: currentRate === r ? '#ffffff' : 'var(--text-primary)',
+                  fontSize: '12px',
+                  fontWeight: 500
+                }}
+              >
+                {r}x
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 5. 보기 모드 (스크롤 vs 페이징) */}
         <div>
           <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
             독서 방식
@@ -255,7 +291,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
         </div>
 
-        {/* 5. 앱 버전 및 캐시 강제 갱신 */}
+        {/* 6. 앱 버전 및 캐시 강제 갱신 */}
         <div
           style={{
             display: 'flex',

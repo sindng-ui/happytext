@@ -1,7 +1,7 @@
 // 앱 버전 및 캐시 강제 갱신 유틸리티
 
-export const APP_VERSION = 'v2.2.0';
-export const APP_BUILD_DESC = '하단 70% 전체 다음장 터치 & 우측 스와이프 이전장';
+export const APP_VERSION = 'v2.3.1';
+export const APP_BUILD_DESC = '안드로이드 내장 TTS 및 배속 설정';
 
 export async function forceUpdateApp(): Promise<void> {
   try {

@@ -15,6 +15,7 @@ export interface ReaderSettings {
   letterSpacing: number;  // 기본 -0.02em
   paragraphSpacing: number; // 기본 14px
   sidePadding: number;    // 기본 18px (12 ~ 32)
+  ttsRate?: number;       // TTS 낭독 배속 (기본 1.0, 0.8 ~ 1.8)
 }
 
 export interface Chapter {

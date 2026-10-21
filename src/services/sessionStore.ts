@@ -13,7 +13,8 @@ export const DEFAULT_SETTINGS: ReaderSettings = {
   fontFamily: 'pretendard',
   letterSpacing: -0.02,
   paragraphSpacing: 16,
-  sidePadding: 20
+  sidePadding: 20,
+  ttsRate: 1.0
 };
 
 // 1. 활성 세션 (Active Session)

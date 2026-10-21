@@ -1,6 +1,6 @@
 import React from 'react';
 import { Volume, Book } from '../../types/book';
-import { ArrowLeft, List, Sliders, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, List, Sliders, ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
 
 interface ReaderToolbarProps {
   isVisible: boolean;
@@ -9,6 +9,8 @@ interface ReaderToolbarProps {
   progress: number;
   hasPrevVolume: boolean;
   hasNextVolume: boolean;
+  isTtsPlaying: boolean;
+  onToggleTts: () => void;
   onBackToLibrary: () => void;
   onOpenChapters: () => void;
   onOpenSettings: () => void;
@@ -24,6 +26,8 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   progress,
   hasPrevVolume,
   hasNextVolume,
+  isTtsPlaying,
+  onToggleTts,
   onBackToLibrary,
   onOpenChapters,
   onOpenSettings,
@@ -35,7 +39,7 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
 
   return (
     <>
-      {/* 1. 상단 네비게이션 툴바 */}
+      {/* 1. 상단 네비게이션 툴바 (상단 30% 터치 시 노출) */}
       <header
         className="animate-slide-down"
         style={{
@@ -90,6 +94,29 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {/* TTS 음성 낭독 재생 / 일시정지 토글 버튼 */}
+          <button
+            onClick={onToggleTts}
+            aria-label={isTtsPlaying ? '음성 낭독 일시정지' : '음성 낭독 재생'}
+            title={isTtsPlaying ? '일시 정지' : '목소리로 읽기 (재생)'}
+            style={{
+              padding: '8px 11px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: isTtsPlaying ? 'var(--accent)' : 'var(--bg-surface-elevated)',
+              border: isTtsPlaying ? '1px solid var(--accent)' : '1px solid var(--border-color)',
+              color: isTtsPlaying ? '#ffffff' : 'var(--text-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              fontSize: '12px',
+              fontWeight: 600,
+              transition: 'background-color 0.15s ease, color 0.15s ease'
+            }}
+          >
+            {isTtsPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
+            <span>{isTtsPlaying ? '일시정지' : '재생'}</span>
+          </button>
+
           <button
             onClick={onOpenChapters}
             style={{

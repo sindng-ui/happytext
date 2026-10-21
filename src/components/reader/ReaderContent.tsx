@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { ReaderSettings } from '../../types/book';
 import { isChapterHeader, isDialogue } from '../../utils/textReflow';
 
@@ -10,6 +10,8 @@ interface ReaderContentProps {
   loading: boolean;
   settings: ReaderSettings;
   containerRef: React.RefObject<HTMLDivElement>;
+  activeTtsParagraphIndex?: number | null;
+  isTtsPlaying?: boolean;
   onScroll: () => void;
   onNextPage: () => void;
   onPrevPage: () => void;
@@ -24,12 +26,26 @@ export const ReaderContent: React.FC<ReaderContentProps> = ({
   loading,
   settings,
   containerRef,
+  activeTtsParagraphIndex = null,
+  isTtsPlaying = false,
   onScroll,
   onNextPage,
   onPrevPage,
   onToggleToolbar
 }) => {
   const isPaging = settings.mode === 'paging';
+
+  // 스크롤 모드에서 TTS 낭독 문단 변경 시 해당 문단으로 부드럽게 포커스 이동
+  useEffect(() => {
+    if (!isPaging && isTtsPlaying && activeTtsParagraphIndex !== null && containerRef.current) {
+      const targetEl = containerRef.current.querySelector(
+        `[data-p-index="${activeTtsParagraphIndex}"]`
+      );
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [isPaging, isTtsPlaying, activeTtsParagraphIndex, containerRef]);
 
   // 터치 및 마우스 제스처 추적 (하단 70% 짧은 터치: 다음 장, 좌->우 스와이프: 이전 장, 상단 30% 짧은 터치: UI 토글)
   const touchStartXRef = useRef<number>(0);
@@ -82,7 +98,7 @@ export const ReaderContent: React.FC<ReaderContentProps> = ({
     const pageHeight = window.innerHeight;
     const clickRatioY = touch.clientY / pageHeight;
 
-    // 3) 상단 30% 영역 짧은 터치: 설정/목차 툴바 UI 토글 (유지)
+    // 3) 상단 30% 영역 짧은 터치: 설정/목차/TTS 툴바 UI 토글
     if (clickRatioY < 0.30) {
       onToggleToolbar();
       return;
@@ -126,7 +142,7 @@ export const ReaderContent: React.FC<ReaderContentProps> = ({
         return;
       }
 
-      // 상단 30% 영역 클릭: 설정/목차 UI 토글
+      // 상단 30% 영역 클릭: 설정/목차/TTS UI 토글
       if (clickRatioY < 0.30) {
         onToggleToolbar();
         return;
@@ -208,6 +224,7 @@ export const ReaderContent: React.FC<ReaderContentProps> = ({
         {displayParagraphs.map((para, idx) => {
           const isChap = isChapterHeader(para);
           const isDial = isDialogue(para);
+          const isTtsActive = isTtsPlaying && activeTtsParagraphIndex === idx;
 
           if (isChap) {
             return (
@@ -223,6 +240,7 @@ export const ReaderContent: React.FC<ReaderContentProps> = ({
                   padding: '10px 0',
                   borderTop: '1px solid var(--border-color)',
                   borderBottom: '1px solid var(--border-color)',
+                  backgroundColor: isTtsActive ? 'var(--accent-soft)' : 'transparent',
                   letterSpacing: '0.04em'
                 }}
               >
@@ -238,7 +256,11 @@ export const ReaderContent: React.FC<ReaderContentProps> = ({
               style={{
                 marginBottom: `${settings.paragraphSpacing}px`,
                 textIndent: isDial ? '0' : '1em',
-                opacity: 0.96
+                opacity: isTtsActive ? 1 : 0.96,
+                backgroundColor: isTtsActive ? 'var(--accent-soft)' : 'transparent',
+                borderLeft: isTtsActive ? '3px solid var(--accent)' : 'none',
+                paddingLeft: isTtsActive ? '8px' : '0',
+                borderRadius: isTtsActive ? '4px' : '0'
               }}
             >
               {para}
@@ -256,10 +278,18 @@ export const ReaderContent: React.FC<ReaderContentProps> = ({
             right: '16px',
             fontSize: '11px',
             color: 'var(--text-muted)',
-            pointerEvents: 'none'
+            pointerEvents: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
           }}
         >
-          {currentPage + 1} / {totalPages}쪽
+          {isTtsPlaying && (
+            <span style={{ color: 'var(--accent)', fontWeight: 600 }}>낭독 중 ·</span>
+          )}
+          <span>
+            {currentPage + 1} / {totalPages}쪽
+          </span>
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Book, Volume, ReaderSettings } from '../../types/book';
 import { useReader } from '../../hooks/useReader';
+import { useTTS } from '../../hooks/useTTS';
 import { ReaderContent } from './ReaderContent';
 import { ReaderToolbar } from './ReaderToolbar';
 import { ChapterDrawer } from './ChapterDrawer';
@@ -37,8 +38,6 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   const [currentPage, setCurrentPage] = useState<number>(() => {
     return isPaging && volume.lastReadParagraphIndex ? volume.lastReadParagraphIndex : 0;
   });
-
-  const contentRef = useRef<HTMLDivElement | null>(null);
 
   const {
     paragraphs,
@@ -138,6 +137,22 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
     setCurrentPage((prev) => Math.max(0, prev - 1));
   }, []);
 
+  // [핵심] 안드로이드 내장 무료 TTS 음성 낭독 훅 연동
+  const activePageParagraphs = useMemo(() => {
+    return isPaging ? pages[currentPage]?.paragraphs || [] : paragraphs;
+  }, [isPaging, pages, currentPage, paragraphs]);
+
+  const { isTtsPlaying, activeTtsParagraphIndex, toggleTts } = useTTS({
+    paragraphs: activePageParagraphs,
+    currentPage: isPaging ? currentPage : 0,
+    totalPages: isPaging ? totalPages : 1,
+    rate: settings.ttsRate || 1.0,
+    bookTitle: book.title,
+    volumeTitle: volume.title,
+    onNextPage: handleNextPage,
+    onPrevPage: handlePrevPage
+  });
+
   // 하단 진행 슬라이더 조작 시 점프
   const handleSeekProgress = useCallback(
     (targetPercent: number) => {
@@ -216,13 +231,15 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
         loading={loading}
         settings={settings}
         containerRef={containerRef}
+        activeTtsParagraphIndex={activeTtsParagraphIndex}
+        isTtsPlaying={isTtsPlaying}
         onScroll={handleScroll}
         onNextPage={handleNextPage}
         onPrevPage={handlePrevPage}
         onToggleToolbar={() => setToolbarVisible((prev) => !prev)}
       />
 
-      {/* 상/하단 툴바 */}
+      {/* 상/하단 툴바 (상단 30% 터치 시 토글 + TTS 재생/일시정지 버튼 포함) */}
       <ReaderToolbar
         isVisible={toolbarVisible}
         book={book}
@@ -230,6 +247,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
         progress={activeProgress}
         hasPrevVolume={!!prevVolume}
         hasNextVolume={!!nextVolume}
+        isTtsPlaying={isTtsPlaying}
+        onToggleTts={toggleTts}
         onBackToLibrary={onBackToLibrary}
         onOpenChapters={() => setChapterDrawerOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}

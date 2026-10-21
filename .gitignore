@@ -7,29 +7,91 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Dependencies
-node_modules
-dist
-dist-ssr
+# Dependencies & Build Outputs
+node_modules/
+dist/
+dist-ssr/
 *.local
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+*.temp
 
-# Environment
+# Operating System files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Environment & Secrets
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+
+# TypeScript / Linter / Test Cache
+*.tsbuildinfo
+.eslintcache
+.cache/
+coverage/
+.nyc_output/
 
 # Novel txt contents (저작권 보호를 위해 소설 본문 파일 제외)
 묵향/
 *.txt
 !docs/*.txt
+
+# Android & Gradle Build Artifacts
+.gradle/
+.gradle-cache/
+.gradle-home/
+build/
+**/build/
+android/.gradle/
+android/local.properties
+android/.idea/
+android/*.iml
+android/app/*.iml
+android/capacitor-cordova-android-plugins/build/
+.externalNativeBuild/
+.cxx/
+captures/
+*.hprof
+
+# Android Package Outputs & Keys (바이너리 및 서명키 제외)
+*.apk
+*.ap_
+*.aab
+*.aar
+*.dex
+*.class
+*.keystore
+*.jks
+google-services.json
+
+# Capacitor auto-generated web assets & plugins
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/app/src/main/res/xml/config.xml
+android/capacitor-cordova-android-plugins/

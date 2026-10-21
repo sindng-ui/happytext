@@ -1,37 +1,46 @@
-# 독서 뷰어 페이지 넘김 터치/스와이프 제스처 개편 계획서 (v2.2.0)
+# 안드로이드 APK 내장 TTS 지원 (Capacitor Text-To-Speech) 구현 계획서
 
-## 1. 개요 및 목표
-형님의 요청에 따라 한 손으로 편하게 독서할 수 있도록 페이징 모드의 터치 영역과 이전 페이지 이동 제스처를 개편합니다.
-- **기존 (AS-IS)**:
-  - 상단 30% 짧은 터치: 설정/목차 툴바 UI 토글
-  - 하단 70% 영역: 좌측(35%) 터치 시 이전 장, 우측(35%) 터치 시 다음 장, 중앙(30%) 터치 시 툴바 토글
-- **개편 (TO-BE)**:
-  - **상단 30% 영역 짧은 터치**: 기존과 동일하게 설정/목차 등 툴바 UI 표시/숨김 토글 (유지)
-  - **하단 70% 영역 짧은 터치**: 좌/중/우 구분 없이 **어느 곳을 짧게 터치하더라도 무조건 다음 장(`onNextPage`)**으로 이동
-  - **이전 장 이동 제스처**: 오직 **왼쪽에서 오른쪽으로 스와이프(Left-to-Right Swipe)** 할 때에만 이전 장(`onPrevPage`)으로 이동
+## 1. 개요 및 원인 분석
+- **발생 오류**: `"이 기기 또는 브라우저에서는 내장 TTS 음성 합성을 지원하지 않습니다."`
+- **근본 원인**:
+  - 일반 웹 브라우저(크롬, 삼성인터넷)에는 `window.speechSynthesis` (Web Speech API)가 내장되어 있습니다.
+  - 하지만 안드로이드 APK 앱(Capacitor WebView) 환경에서는 보안 및 시스템 WebView 스펙상 `window.speechSynthesis`가 탑재되어 있지 않거나 작동하지 않습니다.
+- **해결책**:
+  - Capacitor 8과 완벽 호환되는 네이티브 플러그인 `@capacitor-community/text-to-speech`를 도입합니다.
+  - `useTTS.ts`를 개편하여:
+    - **Capacitor 네이티브 앱**: 기기의 네이티브 TTS 엔진(삼성 TTS / Google 음성 서비스)을 직접 호출하여 무중단 고음질 낭독 구현.
+    - **웹/PWA 환경**: 기존 웹 표준 Web Speech API(`window.speechSynthesis`)로 안전하게 fallback 동작.
 
 ---
 
-## 2. 상세 구현 내역
+## 2. 작업 상세 내용
 
-### 2.1 `src/components/reader/ReaderContent.tsx`
-- **터치 제스처 판별 로직 (`handleTouchStart`, `handleTouchEnd`)**:
-  - `signedDeltaX = touch.clientX - touchStartXRef.current` (양수면 왼쪽→오른쪽 이동)
-  - `absDeltaX = Math.abs(signedDeltaX)`, `absDeltaY = Math.abs(touch.clientY - touchStartYRef.current)`
-  - `deltaTime = Date.now() - touchStartTimeRef.current`
-  - **케이스 1: 왼쪽에서 오른쪽 스와이프 (`signedDeltaX >= 45 && absDeltaX > absDeltaY * 1.3 && deltaTime <= 600`)**
-    - `onPrevPage()` 호출하여 이전 장으로 즉각 전환
-  - **케이스 2: 짧은 터치 (`absDeltaX <= 15 && absDeltaY <= 15 && deltaTime <= 350`)**
-    - `clickRatioY < 0.30` (상단 30%): `onToggleToolbar()` 호출
-    - `clickRatioY >= 0.30` (하단 70% 전체): `onNextPage()` 호출
-  - **케이스 3: 그 외 드래그/스와이프**
-    - 오작동 방지를 위해 무시
-- **데스크톱 마우스 호환 (`handleMouseDown`, `handleContentClick`)**:
-  - PC 환경 및 테스트에서도 동일하게 마우스 좌→우 드래그 시 `onPrevPage()`, 상단 30% 클릭 시 `onToggleToolbar()`, 하단 70% 클릭 시 `onNextPage()` 동작하도록 지원
+### Phase 1: 플러그인 설치 및 안드로이드 동기화
+- `npm install @capacitor-community/text-to-speech`
+- `npx cap sync android`
 
-### 2.2 버전 및 캐시 업데이트 (`src/utils/cacheManager.ts`, `public/sw.js`)
-- `APP_VERSION`을 `v2.2.0`으로 업데이트 (`하단 70% 전체 다음장 터치 & 우측 스와이프 이전장`)
-- `public/sw.js`의 `CACHE_NAME`을 `happytext-cache-v10`으로 갱신하여 모바일 PWA에서 즉시 새 제스처 로직이 반영되도록 처리
+### Phase 2: `src/hooks/useTTS.ts` 네이티브 하이브리드 지원
+- `Capacitor.isNativePlatform()` 감지
+- 네이티브 모드일 때:
+  - `@capacitor-community/text-to-speech`의 `TextToSpeech.speak()`, `TextToSpeech.stop()` 활용
+  - 문단 단위/문장 단위 순차 재생 및 자동 페이지 넘김 로직 그대로 연동
+  - 배속(`rate`), 언어(`ko-KR`) 연동
+- 웹 모드일 때:
+  - 기존 `window.speechSynthesis` 기반 로직 유지
+- 미디어 세션 및 WakeLock 연동 유지
 
-### 2.3 `APP_MAP.md` 문서 업데이트
-- `ReaderContent`의 역할 설명 및 변경 이력(v2.2.0) 반영
+### Phase 3: 빌드 및 APK 생성
+- `npm run build`
+- `npx cap sync android`
+- `.\gradlew.bat assembleDebug`
+- 최신 APK를 루트 [`HappyText-v2.3.0.apk`](file:///K:/Antigravity_Projects/gitbase/happytext/HappyText-v2.3.0.apk)로 복사
+
+### Phase 4: `APP_MAP.md` 문서 최신화
+
+---
+
+## 3. 검증 계획
+1. TypeScript 컴파일 검증 (`npm run build`)
+2. Capacitor Android 동기화 검증 (`npx cap sync android`)
+3. 안드로이드 APK 릴리즈 빌드 검증 (`gradlew assembleDebug`)
+4. APK 생성 확인
